@@ -1,0 +1,29 @@
+name: NuGet Push
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Pack
+        run: dotnet pack -c Release -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg NProtoBufDecoder
+
+      - name: Push generated package to GitHub registry
+        run: dotnet nuget push "NProtoBufDecoder/bin/Release/NProtoBufDecoder*"  --api-key ${{ secrets.GITHUB_TOKEN }} --source "darkrrb_github"
